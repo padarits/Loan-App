@@ -1,0 +1,17 @@
+php artisan make:livewire LoanManager  
+
+php artisan make:cast DateFormatCast
+
+php artisan make:seeder WarehouseSeeder
+
+php artisan db:seed --class=WarehouseSeeder
+
+php artisan make:controller StockHistoryController
+
+php artisan queue:restart
+
+php artisan make:migration add_fields_payment_table --table=Payment
+
+php artisan make:model Payment -m  
+
+composer dump-autoload  

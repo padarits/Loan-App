@@ -1,0 +1,439 @@
+<meta name="api-token" content="{{ Auth::user()->createToken('API Token1')->plainTextToken }}">
+
+//headers: {
+//    'Authorization': 'Bearer ' + $('meta[name="api-token"]').attr('content') // Add api token for AJAX requests
+//},
+
+//'./api/transport-documents',
+//Route::middleware('auth:sanctum')->get('/transport-documents', [TransportDocumentController::class, 'index']);            
+
+<script>
+    document.addEventListener('dataTableAjaxReload', function () {
+        //$("#transport-document").DataTable().ajax.reload(); 
+    });
+
+    // Listen for the 'modalOpened' event emitted by Livewire
+    Livewire.on('modalRendered', function(event) {
+        //console.log(event.php_param);
+        setTimeout(function() {
+            console.log('modalRendered');
+                $( "#receiver_reg_number2" ).autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{{ route('search-receiver-reg-number') }}",
+                            data: {
+                                query: request.term
+                            },
+                            success: function(data) {
+                                response($.map(data, function(item) {
+                                    return {
+                                        label: item.receiver_reg_number + ' - ' + item.receiver_name,  // Divu kolonnu attēlošana
+                                        value: item.receiver_reg_number, // Tas, kas tiks ievadīts laukā
+                                        price: item.receiver_name // Papildus informācija, ko var izmantot
+                                    };
+                                }));
+                            }
+                        });
+                    },
+                    appendTo: 'body',
+                    open: function(event, ui) {
+                        var $input = $(this),
+                            $results = $input.autocomplete("widget"),
+                            offset = $input.offset();
+                        $results.css({
+                            top: offset.top + $input.outerHeight(),
+                            left: offset.left
+                        });
+                    },
+                    minLength: 2,
+                });
+        }, 1000);
+    });
+</script>
+*******************
+Hooks	Description
+component.initialized	Called when a component has been initialized on the page by Livewire
+element.initialized	Called when Livewire initializes an individual element
+element.updating	Called before Livewire updates an element during its DOM-diffing cycle after a network roundtrip
+element.updated	Called after Livewire updates an element during its DOM-diffing cycle after a network roundtrip
+element.removed	Called after Livewire removes an element during its DOM-diffing cycle
+message.sent	Called when a Livewire update triggers a message sent to the server via AJAX
+message.failed	Called if the message send fails for some reason
+message.received	Called when a message has finished its roudtrip, but before Livewire updates the DOM
+message.processed	Called after Livewire processes all side effects (including DOM-diffing) from a message
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        Livewire.hook('component.initialized', (component) => {})
+        Livewire.hook('element.initialized', (el, component) => {})
+        Livewire.hook('element.updating', (fromEl, toEl, component) => {})
+        Livewire.hook('element.updated', (el, component) => {})
+        Livewire.hook('element.removed', (el, component) => {})
+        Livewire.hook('message.sent', (message, component) => {})
+        Livewire.hook('message.failed', (message, component) => {})
+        Livewire.hook('message.received', (message, component) => {})
+        Livewire.hook('message.processed', (message, component) => {})
+    });
+</script>
+******************
+The solution is to force Livewire to add that element in the dom again by adding wire:key to a random value.
+
+<div wire:key="{{ rand() }}">
+    <div x-data="{show: true}">
+        <div x-show="show">
+            <span>{{ $message }}</span>
+            <button @click="show = false">&times;</button>
+        </div>
+    </div>
+</div>
+******************
+    <div wire:init="wireInit">
+    </div>
+****************
+                        <!--<livewire:transport-document-lines :document_id="$id"/>-->
+****************
+        // Izsauc Livewire notikumu, kas paziņo `TransportDocumentLines` komponentam saglabāt līnijas
+        $this->dispatch('saveLines')->to(TransportDocumentLines::class);
+****************
+<script>
+</script>
+****************
+        // Modify the date format from d/m/Y to Y-m-d before validation
+        /*if ($this->document_date) {
+            try {
+                //$this->document_date = \Carbon\Carbon::createFromFormat('d.m.Y', $this->document_date)->format('Y-m-d');
+            } catch (\Exception $e) {
+                // Handle the exception, if the date format is incorrect
+                $this->addError('document_date', 'Invalid date format.');
+                return;
+            }
+        }*/
+****************        
+@push('scripts')
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        console.log('livewire:initialized');    
+    });
+    // Livewire metode rindas dzēšanai
+    Livewire.on('livewire:initialized', (message, component) => {
+        console.log('livewire:initialized');
+        // jQuery UI dialogs
+        $(document).ready(function() {
+            $("#delete-confirm-dialog").dialog({
+                autoOpen: false,
+                resizable: false,
+                height: "auto",
+                width: 400,
+                modal: true,
+                buttons: {
+                    "Jā": function() {
+                        @this.call('removeLine', $("#delete-confirm-dialog").data("index"));  // Livewire metode rindas dzēšanai
+                        $(this).dialog("close");
+                    },
+                    "Nē": function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        });
+    });
+</script>
+@endpush
+****************
+    public function hydrate()
+    {
+        //$this->resetErrorBag();
+        //$this->resetValidation();
+    }
+****************
+    public function updated($name, $value)
+    {
+        //$this->resetValidation($name);
+        //$this->resetErrorBag($name);
+    }
+****************
+    public function rendered($view, $html)
+    {
+        // Runs AFTER the provided view is rendered...
+        //
+        // $view: The rendered view
+        // $html: The final, rendered HTML
+        
+        // Emit the event to trigger JavaScript when the modal opens
+        // $this->dispatch('modalRendered', php_param: date('Y-m-d', strtotime($this->document_date)));
+    }
+****************
+<div wire:key="{{ rand() }}">
+    <div x-data="{show: true}">
+        <div x-show="show">
+            <span>{{ $message }}</span>
+            <button @click="show = false">&times;</button>
+        </div>
+    </div>
+</div>
+****************
+«Гибридные» функции JavaScript Livewire
+Иногда в вашем компоненте есть действия, которым не нужно взаимодействовать с сервером и которые можно эффективнее написать, используя только JavaScript.
+
+В этих случаях, вместо того, чтобы писать действия внутри вашего шаблона Blade или другого файла, ваше компонентное действие может возвращать функцию JavaScript в виде строки. Если действие отмечено атрибутом #[Js], его можно будет вызвать из интерфейса вашего приложения:
+
+Например:
+
+<?php
+ 
+namespace App\Livewire;
+ 
+use Livewire\Attributes\Js;
+use Livewire\Component;
+use App\Models\Post;
+ 
+class SearchPosts extends Component
+{
+    public $query = '';
+ 
+    #[Js] 
+    public function resetQuery()
+    {
+        return <<<'JS'
+            $wire.query = '';
+        JS;
+    }
+ 
+    public function render()
+    {
+        return view('livewire.search-posts', [
+            'posts' => Post::whereTitle($this->query)->get(),
+        ]);
+    }
+}
+<div>
+    <input wire:model.live="query">
+ 
+    <button wire:click="resetQuery">Reset Search</button> 
+ 
+    @foreach ($posts as $post)
+        <!-- ... -->
+    @endforeach
+</div>
+В приведенном выше примере при нажатии кнопки «Сбросить поиск» введенный текст будет очищен без отправки каких-либо запросов на сервер.
+*************
+<?php
+ 
+namespace App\Livewire;
+ 
+use Livewire\Component;
+ 
+class CreatePost extends Component
+{
+    public $title = '';
+ 
+    public function save()
+    {
+        // ...
+ 
+        $this->js("alert('Post saved!')"); 
+    }
+}
+*********************
+$toggle
+Действие $toggleиспользуется для переключения значения логического свойства в компоненте Livewire:
+
+<button wire:click="$toggle('sortAsc')">
+    Sort {{ $sortAsc ? 'Descending' : 'Ascending' }}
+</button>
+В этом примере при нажатии кнопки $sortAscсвойство компонента будет переключаться между trueи false.
+*********************
+$dispatch
+Действие $dispatchпозволяет вам отправлять событие Livewire прямо в браузере. Ниже приведен пример кнопки, при нажатии на которую будет отправляться событие post-deleted:
+
+<button type="submit" wire:click="$dispatch('post-deleted')">Delete Post</button>    
+**********************
+    #[Renderless] 
+    public function incrementViewCount()
+    {
+        $this->post->incrementViewCount();
+    }
+    ------------
+<div>
+    <h1>{{ $post->title }}</h1>
+    <p>{{ $post->content }}</p>
+ 
+    <div x-intersect="$wire.incrementViewCount()"></div>
+</div>
+В приведенном выше примере используется x-intersectутилита Alpine, которая вызывает выражение, когда элемент попадает в область просмотра (обычно используется для определения того, когда пользователь прокручивает страницу к элементу, расположенному ниже).
+**********************************
+        /*if (str_contains($field, 'product_code')){
+            // $result = TransportDocumentController::getLastProductNameByArticle($value);
+            // Check if the field matches the pattern "lines.*.product_code"
+            if (preg_match('/lines\.(\d+)\.product_code/', $field, $matches)) {
+                $rowIndex = $matches[1]; // This will be the row index
+                //$this->lines[$rowIndex]['product_name'] = isset($result['product_name']) ? $result['product_name'] : '';
+                //$this->dispatch('showSuccess', json_encode($result));
+            }
+        }*/
+**********************************
+    document.addEventListener('livewire:initialized', function () {
+        console.log('livewire:initialized');
+        console.log($('#users-table'));
+    });
+**********************************
+<div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6" x-init="$nextTick(() => {initTable();})">
+**********************************
+var $dialog = null;
+function openDialog(index){
+    console.log('openDialog');
+    if ($dialog === null) {
+        $dialog = $("#delete-confirm-dialog").dialog({
+            autoOpen: false,
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                "Jā": function() {
+                    //callBack();
+                    //@this.call('removeLine', index);  // Livewire metode rindas dzēšanai
+                    $dialog.dialog("close");
+                },
+                "Nē": function() {
+                    $dialog.dialog("close");
+                }
+            }
+        });
+    }
+    $($dialog).dialog( "open" );
+}
+*************************************
+                @if (session()->has('message'))
+                    <div class="bg-green-500 text-white p-4 rounded mb-4" style="margin: 5px;">
+                        {{ session('message') }}
+                    </div>
+                @endif
+************************************
+resources\views\profile\show.blade.php
+
+            <x-section-border />
+            <div class="container">
+                @livewire('password-modal')
+            </div>
+************************************
+                    render: function (data, type, row, meta) {
+                        const icons = {
+                            '010_none': {icon: 'fas fa-file', color: '#6c757d', label: 'Nezināms'},
+                            '020_application': {icon: 'fas fa-file-alt', color: '#007bff', label: 'Pieteikums'},
+                            '030_received': {icon: 'fas fa-file-import', color: '#28a745', label: 'Saņemts'},
+                            '040_dispensed': {icon: 'fas fa-truck', color: '#ffc107', label: 'Piegādāts'},
+                            '050_written_off': {icon: 'fas fa-trash-alt', color: '#dc3545', label: 'Norakstīts'},
+                            '060_added_to_inventory': {icon: 'fas fa-plus-circle', color: '#17a2b8', label: 'Pievienots inventarizācijai'},
+                            '070_removed_from_inventory': {icon: 'fas fa-minus-circle', color: '#fd7e14', label: 'Noņemts inventarizācijai'},
+                            '080_in_transit': {icon: 'fas fa-shipping-fast', color: '#ffc107', label: 'Ceļā'},
+                            '090_canceled': {icon: 'fas fa-times-circle', color: '#dc3545', label: 'Atcelts'}
+                        };
+                        const iconData = icons[data] || {icon: 'fas fa-file', color: '#6c757d', label: data};
+                        return `<span style="display: inline-flex; align-items: center;">
+                                    <i class="${iconData.icon}" style="color: ${iconData.color};" aria-label="${iconData.label}" title="${iconData.label}"></i>
+                                    <span style="color: ${iconData.color};"> ${iconData.label}</span>
+                                </span>`;
+                    }
+************************************
+                            <div class="grid grid-cols-2 gap-4">
+
+                                <div class="mb-4">
+                                    <label for="date" class="block text-sm font-medium text-gray-700">Dokumenta Datums:</label>
+                                    <div x-data x-init='$( "#date" ).datepicker(
+                                        {
+                                            setDate: $refs.datepicker,
+                                            regional: "lv",
+                                            dateformat: "dd.mm.yyyy",
+                                            showWeek: true,
+                                            firstDay: 1,
+                                            showButtonPanel: true,
+                                            altField: "#document_date_a",
+                                            altFormat: "yy-mm-dd",
+                                        }).on("change", function(value) {
+                                        });'>
+                                        <input type="text" x-ref="datepicker" id="date" wire:model.blur="date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm" autocomplete="off"/>
+                                    </div>
+                                    @error('date') 
+                                        <span class="text-red-500">{{ $message }}</span> 
+                                        <div hidden x-init="$wire.dispatch('showError', ['{{ $message }}']);"></div>
+                                    @enderror
+                                </div>
+**********************************
+                                <div class="mb-4 col-span-2">
+                                    <label for="supplier_company" class="block text-sm font-medium text-gray-700">Piegādātāja Nosaukums:</label>
+                                    <input type="text" id="supplier_company" wire:model.blur="supplier_company" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm" autocomplete="off">
+                                    @error('supplier_company') 
+                                        <span class="text-red-500">{{ $message }}</span> 
+                                        <div hidden x-init="$wire.dispatch('showError', ['{{ $message }}']);"></div>
+                                    @enderror
+                                </div>
+***********************************
+                                        @php {{ $pageIds['transitId'] = 'transitId' . Str::random(8); }} @endphp
+***********************************
+            $this->js("$('#jj-warehouse-code-filter').val('$warehouseCode')"); 
+***********************************
+Разрешение на ввод
+Поскольку $idна стороне клиента можно манипулировать чем-то вроде wire:model, как и в контроллере, мы можем использовать авторизацию Laravel , чтобы убедиться, что текущий пользователь может обновить публикацию:
+
+public function update()
+{
+    $post = Post::findOrFail($this->id);
+ 
+    $this->authorize('update', $post); 
+ 
+    $post->update(...);
+}
+************************************
+use Illuminate\Http\JsonResponse;
+
+public function jsonResponse(): JsonResponse
+{
+    $data = [
+        'status' => 'success',
+        'message' => 'Data retrieved successfully',
+        'data' => [
+            'key1' => 'value1',
+            'key2' => 'value2',
+        ],
+    ];
+
+    return response()->json($data, 200);
+}
+************************************
+Прослушивание событий от определенных дочерних компонентов
+Livewire позволяет прослушивать события непосредственно на отдельных дочерних компонентах в шаблоне Blade, например:
+
+<div>
+    <livewire:edit-post @saved="$refresh">
+ 
+    <!-- ... -->
+</div>
+В приведенном выше сценарии, если edit-postдочерний компонент отправляет saved событие, будет вызван родительский компонент $refresh, и родительский компонент будет обновлен.
+**************************************
+Виртуальные таблицы в Dataverse часто не видны через стандартный коннектор Dataverse в Power BI. Вместо этого попробуйте использовать коннектор Common Data Service. 
+**************************************
+$parent
+Магическая $parentпеременная позволяет вам получать доступ к свойствам родительского компонента и вызывать действия родительского компонента из дочернего компонента:
+
+<button wire:click="$parent.removePost({{ $post->id }})">Remove</button>
+В приведенном выше примере, если родительский компонент имеет removePost()действие, дочерний компонент может вызвать его напрямую из своего шаблона Blade, используя $parent.removePost().
+**************************************
+<button
+    type="button"
+    wire:click="delete"
+    wire:confirm="Are you sure you want to delete this post?"
+>
+    Delete post 
+</button>
+**************************************
+
+
+
+
+
+
+
+
+
+

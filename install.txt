@@ -1,0 +1,41 @@
+
+php artisan migrate
+
+php artisan db:seed --class=AdminRoleSeeder
+
+php artisan db:seed --class=RolesAndPermissionsSeeder
+
+# Run the Vite development server...
+npm run dev
+ 
+# Build and version the assets for production...
+npm run build
+
+php artisan livewire:publish --assets
+
+composer install 
+
+
+*** produkcijas izveidošana ***
+
+npm run build
+
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+composer dump-autoload
+***
+ composer dump-autoload
+ composer dump-autoload -o
+
+ php artisan clear-compiled
+ php artisan optimize
+
+ php artisan route:clear
+ php artisan view:clear
+
+ php artisan cache:clear
+ php artisan config:cache
+ php artisan config:clear
+***
